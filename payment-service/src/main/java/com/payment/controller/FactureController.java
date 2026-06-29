@@ -27,7 +27,7 @@ public class FactureController {
         return ResponseEntity.accepted().body(Map.of("status", "Seeding factures en cours"));
     }
 
-    // Factures impayées du mois en cours (avec ou sans filtre unite)
+   
     @GetMapping("/{walletCode}/current")
     public ResponseEntity<List<Facture>> getCurrentUnpaid(
             @PathVariable String walletCode,
@@ -35,7 +35,7 @@ public class FactureController {
         return ResponseEntity.ok(factureService.getUnpaidCurrentMonth(walletCode, unite));
     }
 
-    // Factures impayées sur une période
+    
     @GetMapping("/{walletCode}/periode")
     public ResponseEntity<List<Facture>> getByPeriod(
             @PathVariable String walletCode,
@@ -44,7 +44,6 @@ public class FactureController {
         return ResponseEntity.ok(factureService.getUnpaidByPeriod(walletCode, debut, fin));
     }
 
-    // Payer la facture du mois en cours (appelé par badwallet-api)
     @PostMapping("/pay-current")
     public ResponseEntity<Void> payCurrentMonth(@RequestBody Map<String, Object> body) {
         String walletCode = (String) body.get("walletCode");

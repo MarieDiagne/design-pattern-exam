@@ -36,7 +36,7 @@ public class Facture {
     private BigDecimal montant;
 
     @Column(nullable = false)
-    private LocalDate mois; // Premier jour du mois concerné (ex: 2026-05-01)
+    private LocalDate mois; 
 
     @Column(nullable = false)
     private boolean payee;

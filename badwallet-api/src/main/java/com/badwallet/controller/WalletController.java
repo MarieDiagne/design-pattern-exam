@@ -2,7 +2,7 @@ package com.badwallet.controller;
 
 import com.badwallet.dto.*;
 import com.badwallet.service.WalletService;
-import com.badwallet.service.WalletSeederService;
+import com.badwallet.seeder.WalletSeederService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
