@@ -1,0 +1,182 @@
+### =============================================================
+### TEST.HTTP - Design Pattern Exam
+### BadWallet API (port 8080) + Payment Service (port 8081)
+### =============================================================
+
+@host = http://localhost:8080
+@paymentHost = http://localhost:8081
+@phoneNumber = 771234567
+@walletId = 1
+
+### =============================================================
+### BADWALLET API - PORT 8080
+### =============================================================
+
+### 1. Créer un portefeuille
+# POST {{host}}/api/wallets
+POST {{host}}/api/wallets
+Content-Type: application/json
+
+{
+  "phoneNumber": "771234567",
+  "email": "marie@test.com",
+  "code": "WALLET001",
+  "initialBalance": 50000,
+  "currency": "XOF"
+}
+
+###
+
+### 2. Lister les portefeuilles (paginé)
+GET {{host}}/api/wallets?page=0&size=10
+
+###
+
+### 3. Consulter un portefeuille par numéro de téléphone
+GET {{host}}/api/wallets/{{phoneNumber}}
+
+###
+
+### 4. Récupérer le solde (balance)
+GET {{host}}/api/wallets/{{phoneNumber}}/balance
+
+###
+
+### 5. Effectuer un dépôt (CREDIT_CARD)
+POST {{host}}/api/wallets/{{walletId}}/deposit
+Content-Type: application/json
+
+{
+  "amount": 20000,
+  "paymentMethod": "CREDIT_CARD"
+}
+
+###
+
+### 5b. Effectuer un dépôt (WALLET_TARGET)
+POST {{host}}/api/wallets/{{walletId}}/deposit
+Content-Type: application/json
+
+{
+  "amount": 10000,
+  "paymentMethod": "WALLET_TARGET"
+}
+
+###
+
+### 6. Effectuer un retrait (frais 1% plafonné 5000)
+POST {{host}}/api/wallets/withdraw
+Content-Type: application/json
+
+{
+  "phoneNumber": "771234567",
+  "amount": 5000
+}
+
+###
+
+### 7. Transfert entre deux portefeuilles
+POST {{host}}/api/wallets/transfer
+Content-Type: application/json
+
+{
+  "senderPhone": "771234567",
+  "receiverPhone": "779876543",
+  "amount": 3000
+}
+
+###
+
+### 8. Payer une facture du mois en cours (ISM ou WOYAFAL)
+POST {{host}}/api/wallets/pay
+Content-Type: application/json
+
+{
+  "phoneNumber": "771234567",
+  "serviceName": "ISM",
+  "amount": 150000
+}
+
+###
+
+### 8b. Payer une facture du mois en cours (WOYAFAL)
+POST {{host}}/api/wallets/pay
+Content-Type: application/json
+
+{
+  "phoneNumber": "771234567",
+  "serviceName": "WOYAFAL",
+  "amount": 12000
+}
+
+###
+
+### 9. Payer des factures spécifiques (par références)
+POST {{host}}/api/wallets/pay-factures
+Content-Type: application/json
+
+{
+  "phoneNumber": "771234567",
+  "serviceName": "ISM",
+  "factureReferences": ["FAC-001", "FAC-002"]
+}
+
+###
+
+### 10. Historique des transactions par numéro de téléphone
+GET {{host}}/api/wallets/{{phoneNumber}}/transactions
+
+###
+
+### 11. Consulter factures impayées du mois en cours
+GET {{host}}/api/external/factures/WALLET001/current
+
+###
+
+### 12. Factures impayées filtrées par unité (ISM)
+GET {{host}}/api/external/factures/WALLET001/current?unite=ISM
+
+###
+
+### 13. Factures impayées filtrées par unité (WOYAFAL)
+GET {{host}}/api/external/factures/WALLET001/current?unite=WOYAFAL
+
+###
+
+### 14. Factures impayées sur une période
+GET {{host}}/api/external/factures/WALLET001/periode?debut=2026-01-01&fin=2026-06-30
+
+###
+
+### =============================================================
+### PAYMENT SERVICE - PORT 8081
+### =============================================================
+
+### 15. Seeder les factures (payment-service)
+POST {{paymentHost}}/api/factures/seed?numWallets=10
+
+###
+
+### 16. Factures impayées du mois en cours (payment-service direct)
+GET {{paymentHost}}/api/factures/WALLET001/current
+
+###
+
+### 17. Factures impayées filtrées par service
+GET {{paymentHost}}/api/factures/WALLET001/current?unite=ISM
+
+###
+
+### 18. Factures impayées sur une période
+GET {{paymentHost}}/api/factures/WALLET001/periode?debut=2026-01-01&fin=2026-06-30
+
+###
+
+### =============================================================
+### SEEDERS (initialiser les données de test)
+### =============================================================
+
+### Seeder wallets + transactions (badwallet-api)
+POST {{host}}/api/wallets/seed?numWallets=10&eventsPerWallet=5
+
+###
