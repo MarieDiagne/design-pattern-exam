@@ -1,182 +1,108 @@
-### =============================================================
-### TEST.HTTP - Design Pattern Exam
-### BadWallet API (port 8080) + Payment Service (port 8081)
-### =============================================================
+### BadWallet API & Payment Service Test Suite
+# Ce fichier contient des exemples de requêtes pour tester tous les endpoints
+# de badwallet-api (port 8080) et de payment-service (port 8081).
+# Supporté par les extensions REST Client (VS Code).
 
-@host = http://localhost:8080
+## 1. Les End Points
+@walletHost = http://localhost:8080
 @paymentHost = http://localhost:8081
-@phoneNumber = 771234567
-@walletId = 1
 
-### =============================================================
-### BADWALLET API - PORT 8080
-### =============================================================
+# ==========================================
+# PARTIE 1 : badwallet-api (Port 8080)
+# ==========================================
 
-### 1. Créer un portefeuille
-# POST {{host}}/api/wallets
-POST {{host}}/api/wallets
+### 1.1 Seeder la base de données badwallet-api (Async)
+POST {{walletHost}}/api/wallets/seed?numWallets=10&eventsPerWallet=100
+Content-Type: application/json
+
+### 1.2 Créer un nouveau portefeuille
+POST {{walletHost}}/api/wallets
 Content-Type: application/json
 
 {
-  "phoneNumber": "771234567",
-  "email": "marie@test.com",
-  "code": "WALLET001",
-  "initialBalance": 50000,
+  "phoneNumber": "+221779998877",
+  "email": "testclient@gmail.com",
+  "initialBalance": 25000,
+  "code": "WLT-TEST001",
   "currency": "XOF"
 }
 
-###
+### 1.3 Lister tous les portefeuilles (Paginé)
+GET {{walletHost}}/api/wallets?page=0&size=10
+Content-Type: application/json
 
-### 2. Lister les portefeuilles (paginé)
-GET {{host}}/api/wallets?page=0&size=10
+### 1.4 Consulter un portefeuille par numéro de téléphone
+GET {{walletHost}}/api/wallets/+221770000003
+Content-Type: application/json
 
-###
+### 1.5 Consulter uniquement le solde à jour
+GET {{walletHost}}/api/wallets/+221770000003/balance
+Content-Type: application/json
 
-### 3. Consulter un portefeuille par numéro de téléphone
-GET {{host}}/api/wallets/{{phoneNumber}}
-
-###
-
-### 4. Récupérer le solde (balance)
-GET {{host}}/api/wallets/{{phoneNumber}}/balance
-
-###
-
-### 5. Effectuer un dépôt (CREDIT_CARD)
-POST {{host}}/api/wallets/{{walletId}}/deposit
+### 1.6 Effectuer un Dépôt(CREDIT_CARD,WALLET_TARGET)
+POST {{walletHost}}/api/wallets/1/deposit
 Content-Type: application/json
 
 {
-  "amount": 20000,
+  "amount": 50000.00,
   "paymentMethod": "CREDIT_CARD"
 }
 
-###
-
-### 5b. Effectuer un dépôt (WALLET_TARGET)
-POST {{host}}/api/wallets/{{walletId}}/deposit
+### 1.7 Effectuer un Retrait (frais de 1% du montant plafonnés à 5000 CFA)
+POST {{walletHost}}/api/wallets/withdraw
 Content-Type: application/json
 
 {
-  "amount": 10000,
-  "paymentMethod": "WALLET_TARGET"
+  "phoneNumber": "+221770000001",
+  "amount": 10000.00
 }
 
-###
-
-### 6. Effectuer un retrait (frais 1% plafonné 5000)
-POST {{host}}/api/wallets/withdraw
+### 1.8 Effectuer un Transfert entre deux portefeuilles
+POST {{walletHost}}/api/wallets/transfer
 Content-Type: application/json
 
 {
-  "phoneNumber": "771234567",
-  "amount": 5000
+  "senderPhone": "+221770000001",
+  "receiverPhone": "+221770000002",
+  "amount": 2000.00
 }
 
-###
-
-### 7. Transfert entre deux portefeuilles
-POST {{host}}/api/wallets/transfer
+### 1.9 Payer une facture du mois encours (ISM, WOYAFAL) via externe api payment-service
+POST {{walletHost}}/api/wallets/pay
 Content-Type: application/json
 
 {
-  "senderPhone": "771234567",
-  "receiverPhone": "779876543",
-  "amount": 3000
-}
-
-###
-
-### 8. Payer une facture du mois en cours (ISM ou WOYAFAL)
-POST {{host}}/api/wallets/pay
-Content-Type: application/json
-
-{
-  "phoneNumber": "771234567",
+  "phoneNumber": "+221770000003",
   "serviceName": "ISM",
-  "amount": 150000
+  "amount": 5000.00
 }
 
-###
-
-### 8b. Payer une facture du mois en cours (WOYAFAL)
-POST {{host}}/api/wallets/pay
+### 1.10 Payer des factures spécifiques
+POST {{walletHost}}/api/wallets/pay-factures
 Content-Type: application/json
 
 {
-  "phoneNumber": "771234567",
-  "serviceName": "WOYAFAL",
-  "amount": 12000
-}
-
-###
-
-### 9. Payer des factures spécifiques (par références)
-POST {{host}}/api/wallets/pay-factures
-Content-Type: application/json
-
-{
-  "phoneNumber": "771234567",
+  "phoneNumber": "+221770000003",
   "serviceName": "ISM",
-  "factureReferences": ["FAC-001", "FAC-002"]
+  "factureReferences": ["FAC-ISM-3-1", "FAC-ISM-3-3"]
 }
 
-###
+### 1.11 Consulter l'historique des transactions par téléphone
+GET {{walletHost}}/api/wallets/+221770000003/transactions
+Content-Type: application/json
 
-### 10. Historique des transactions par numéro de téléphone
-GET {{host}}/api/wallets/{{phoneNumber}}/transactions
+# ==========================================
+# PARTIE 2 : Proxy API dans badwallet-api (Port 8080)
+# ==========================================
 
-###
+### 2.2 Consulter les factures impayées du mois en cours
+GET {{walletHost}}/api/external/factures/WLT-0000003/current
+Content-Type: application/json
 
-### 11. Consulter factures impayées du mois en cours
-GET {{host}}/api/external/factures/WALLET001/current
+### 2.3 Consulter les factures impayées du mois en cours filtrées par unité de paiement (ex: WOYAFAL)
+GET {{walletHost}}/api/external/factures/WLT-0000003/current?unite=WOYAFAL
+Content-Type: application/json
 
-###
-
-### 12. Factures impayées filtrées par unité (ISM)
-GET {{host}}/api/external/factures/WALLET001/current?unite=ISM
-
-###
-
-### 13. Factures impayées filtrées par unité (WOYAFAL)
-GET {{host}}/api/external/factures/WALLET001/current?unite=WOYAFAL
-
-###
-
-### 14. Factures impayées sur une période
-GET {{host}}/api/external/factures/WALLET001/periode?debut=2026-01-01&fin=2026-06-30
-
-###
-
-### =============================================================
-### PAYMENT SERVICE - PORT 8081
-### =============================================================
-
-### 15. Seeder les factures (payment-service)
-POST {{paymentHost}}/api/factures/seed?numWallets=10
-
-###
-
-### 16. Factures impayées du mois en cours (payment-service direct)
-GET {{paymentHost}}/api/factures/WALLET001/current
-
-###
-
-### 17. Factures impayées filtrées par service
-GET {{paymentHost}}/api/factures/WALLET001/current?unite=ISM
-
-###
-
-### 18. Factures impayées sur une période
-GET {{paymentHost}}/api/factures/WALLET001/periode?debut=2026-01-01&fin=2026-06-30
-
-###
-
-### =============================================================
-### SEEDERS (initialiser les données de test)
-### =============================================================
-
-### Seeder wallets + transactions (badwallet-api)
-POST {{host}}/api/wallets/seed?numWallets=10&eventsPerWallet=5
-
-###
+### 2.4 Consulter les factures impayées sur une période
+GET {{walletHost}}/api/external/factures/WLT-0000003/periode?debut=2026-05-01&fin=2026-07-01
+Content-Type: application/json
