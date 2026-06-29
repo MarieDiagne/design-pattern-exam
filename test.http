@@ -84,7 +84,7 @@ Content-Type: application/json
 {
   "phoneNumber": "+221770000003",
   "serviceName": "ISM",
-  "factureReferences": ["FAC-ISM-3-1", "FAC-ISM-3-3"]
+  "factureReferences": ["FAC-ISM-3-3", "FAC-ISM-3-5"]
 }
 
 ### 1.11 Consulter l'historique des transactions par téléphone
@@ -105,4 +105,9 @@ Content-Type: application/json
 
 ### 2.4 Consulter les factures impayées sur une période
 GET {{walletHost}}/api/external/factures/WLT-0000003/periode?debut=2026-05-01&fin=2026-07-01
+Content-Type: application/json
+
+
+### Seed payment-service
+POST http://localhost:8081/api/factures/seed?numWallets=10
 Content-Type: application/json
